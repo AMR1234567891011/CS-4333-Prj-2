@@ -80,10 +80,6 @@ rc = bind(sockfd, (const struct sockaddr*)&receiverAddr, sizeof(receiverAddr));
 if(rc < 0){
     printf( "bind failed: %d", WSAGetLastError());
 }
-slidingAddr.sin_family = AF_INET;
-slidingAddr.sin_port = htons(8081);
-slidingAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-slidingSocket = socket(AF_INET, SOCK_DGRAM, 0);
 wasInit = 0;
 }
 

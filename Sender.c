@@ -19,6 +19,46 @@ gcc Receiver.c -lws2_32 -o Receiver
 
 Also make sure to disable windows defender and folder proteciton because that will delte your binaries
 */ 
+//Queue implementation
+int enqueue(int elt);
+int dequeue();
+int queueIsEmpty();
+int QueueFront = -1;
+int QueueRear = -1;
+int queue[100];
+int QueueSize = 100;
+int enqueue(int elt){
+    if(QueueRear == QueueSize -1 ){
+        fprintf(stderr, "\nQueue Overflow womp womp");
+        return -1;
+    }else{
+        if(QueueFront == -1){
+            QueueFront = 0;
+        }
+        QueueRear++;
+        queue[QueueRear] = elt;
+        return 0;
+    }
+}
+
+int dequeue(){
+    if(QueueFront == -1 || QueueFront > QueueRear){
+        printf("\n%d\n%d",QueueFront,QueueRear);
+        fprintf(stderr,"\nQueue Underflow womp womp");
+        return -10000;
+    }else{
+        int temp =  queue[QueueFront];
+        QueueFront++;
+        return temp;
+    }
+
+}
+int queueIsEmpty(){
+    if(QueueFront == QueueRear||QueueFront == -1){
+        return 0;
+    }
+    return -1;
+}
 char* getFilename();
 int getLocalPort();
 int getMode();
@@ -117,16 +157,19 @@ static int slidingWindow(char *string){//Preforms the sliding window protocol
         init();
     }
     int back =  strlen(string) / 252;
+    printf("\nSend Length: %d",back);
     int Ack = 0;
     int max = 0;
     int idx = 0;
+    int windowSize = 3;
     while(1){
-        while(Ack < 5){
+        while(Ack < windowSize){
             if(idx-1 > back){
                 break;
             }
             max = sendSlidingWindow(idx, mash);
             printf("\nSent Packet: %d", max);
+            enqueue(max);
             idx++;
             Ack++;
         }
@@ -137,10 +180,19 @@ static int slidingWindow(char *string){//Preforms the sliding window protocol
         if(read > 0){
             int ackSeqNum = bytesToInt(receive);
             printf("\nACK Received: %d",ackSeqNum);
+            int temp = dequeue();
+            if(temp != ackSeqNum){
+                printf("\nproblemO %d",temp);
+            }
+            
             Ack--;
             if(ackSeqNum == -1){
+                if(queueIsEmpty()){
                 printf("\nSliding Window Succes!!!\n");
                 return 0;
+                }else{
+                    printf("\nproblem1");
+                }
             }
         }
         }
