@@ -161,7 +161,7 @@ static int slidingWindow(char *string){//Preforms the sliding window protocol
     int Ack = 0;
     int max = 0;
     int idx = 0;
-    int windowSize = 3;
+    int windowSize = 6;
     while(1){
         while(Ack < windowSize){
             if(idx-1 > back){
@@ -182,7 +182,7 @@ static int slidingWindow(char *string){//Preforms the sliding window protocol
             printf("\nACK Received: %d",ackSeqNum);
             int temp = dequeue();
             if(temp != ackSeqNum){
-                printf("\nproblemO %d",temp);
+                enqueue(temp);
             }
             
             Ack--;
@@ -190,8 +190,6 @@ static int slidingWindow(char *string){//Preforms the sliding window protocol
                 if(queueIsEmpty()){
                 printf("\nSliding Window Succes!!!\n");
                 return 0;
-                }else{
-                    printf("\nproblem1");
                 }
             }
         }
