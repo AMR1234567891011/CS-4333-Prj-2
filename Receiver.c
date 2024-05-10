@@ -136,21 +136,21 @@ static int sendACKSliding(int seq){
     int send = sendto(sockfd, (char *)bytes, 4,0,  (SOCKADDR *)&source, slen);
     return send;
 }
-static int stopAndWait(){
+static int stopAndWait(FILE* file){
     printf("\nTesting stop and wait\n");
     if(wasInit == -1){
     init();
     }
     char *buffer = calloc(256, sizeof(char));
     int read,seq,prev;
-    seq =0;
+    seq = 0;
     read = -1;
     prev = -1;
     while(1){ 
     read = recvfrom(sockfd, (char *)buffer , 256, 0 , (SOCKADDR *)&source , &slen);
     if(read > 0){
     seq = getSeqNumAndShift(buffer);
-    printf("%.252s",buffer);
+    fprintf(file,"%.252s",buffer);
     if(seq == prev +1){
         prev++;
         sendACK(seq);
@@ -169,8 +169,9 @@ static int stopAndWait(){
     return -1;
 }
 
-static int slidingWindow(){
+static int slidingWindow(FILE* file){
     printf("\nTesting sliding window\n");
+    char output[10000] = {0};
     if(wasInit == -1){
         init();
     }
@@ -183,12 +184,19 @@ static int slidingWindow(){
     read = recvfrom(sockfd, (char *)buffer , 256, 0 , (SOCKADDR *)&source , &slen);
     if(read > 0){
     seq = getSeqNumAndShift(buffer);
-    printf("%.252s",buffer);
-    sendACKSliding(seq);
     if(seq == -1){
         printf("\nSliding Window Success !!!");
+        sendACKSliding(seq);
+        output[prev] = '\0';
+        fprintf(file, "%s",output);
         return 0;
+    }else{
+    prev+=252;
+    memmove(output + seq*252, buffer,252);
+    sendACKSliding(seq);
     }
+    
+
     }
     }
     return -1;
@@ -199,7 +207,6 @@ static int slidingWindow(){
 int receiveFile(){
     int a = 0;
     if(mode == 0){//stop and wait
-    a = stopAndWait(1);
     }else if(mode == 1){//sliding window
     //a = slidingWindow();
     }else{
@@ -210,8 +217,12 @@ int receiveFile(){
 
 
 int main(){
-stopAndWait();
-slidingWindow();
+FILE *fp = fopen("stopAndWait.txt","w");
+FILE *fp2 = fopen("slidingWindow.txt", "w");
+stopAndWait(fp);
+slidingWindow(fp2);
+fclose(fp);
+fclose(fp2);
 close(sockfd);
 return 0;
 }
